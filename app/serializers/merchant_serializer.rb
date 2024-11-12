@@ -7,4 +7,16 @@ class MerchantSerializer
   } do |merchant|
     merchant.item_count
   end
+
+  attribute :coupons_count, if: Proc.new { |merchant, params|
+    params && params[:count] == true
+  } do |merchant|
+    merchant.active_coupons_count
+  end
+
+  attribute :invoice_coupon_count, if: Proc.new { |merchant, params|
+    params && params[:count] == true
+  } do |merchant|
+    merchant.invoice_coupon_count
+  end
 end

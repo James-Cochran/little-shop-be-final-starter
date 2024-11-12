@@ -14,6 +14,31 @@ describe "Merchant endpoints", :type => :request do
       expect(json[:data].first[:attributes]).to include(:name)
     end
 
+    it "should return merchants with coupon and invoice counts" do
+      @merchant = Merchant.create!(name: "Walmart")
+
+      @coupon1 = @merchant.coupons.create!(name: "Discount A", code: "SAVE10", value: 10, active: true)
+      @coupon2 = @merchant.coupons.create!(name: "Discount B", code: "SAVE20", value: 20, active: false)
+      @coupon3 = @merchant.coupons.create!(name: "Discount C", code: "SAVE30", value: 30, active: true)
+      @coupon4 = @merchant.coupons.create!(name: "Discount D", code: "SAVE40", value: 40, active: true)
+      @coupon5 = @merchant.coupons.create!(name: "Discount E", code: "SAVE50", value: 50, active: false)
+
+      @customer1 = Customer.create!(first_name: "Bob", last_name: "Lobla")
+      @customer2 = Customer.create!(first_name: "Sally", last_name: "Schnieder")
+      @invoice1 = @merchant.invoices.create!(customer: @customer1, status: "shipped", coupon: @coupon1)
+      @invoice2 = @merchant.invoices.create!(customer: @customer2, status: "shipped", coupon: nil)
+
+      get "/api/v1/merchants?count=true"
+      json = JSON.parse(response.body, symbolize_names: true)
+
+      expect(response).to have_http_status(:ok)
+      expect(json[:data].count).to eq(1) 
+      expect(json[:data][0][:attributes]).to include(:name, :coupons_count, :invoice_coupon_count)
+
+      expect(json[:data][0][:attributes][:coupons_count]).to eq(3) 
+      expect(json[:data][0][:attributes][:invoice_coupon_count]).to eq(1)
+    end
+
     it "should return a data key even when there are no merchants to return" do
       get "/api/v1/merchants"
       json = JSON.parse(response.body, symbolize_names: true)
