@@ -26,6 +26,15 @@ class Coupon < ApplicationRecord
       end
     end
   end
+
+  def self.filtered_by_active_status(merchant, active_status = nil)
+    if active_status.nil?
+      merchant.coupons
+    else
+      status = active_status == 'true'
+      merchant.coupons.where(active: status)
+    end
+  end
   
   private
   
