@@ -91,5 +91,19 @@ describe Merchant, type: :model do
       expect(merchant.invoices_filtered_by_status("returned")).to eq([inv_5_returned])
       expect(other_merchant.invoices_filtered_by_status("packaged")).to eq([inv_4_packaged])
     end
+
+    it "should return a count of coupon id's associated with invoices" do
+      #attempt at factory bot
+      merchant = create(:merchant)
+      coupon1 = create(:coupon, merchant: merchant)
+      coupon2 = create(:coupon, merchant: merchant)
+      coupon3 = create(:coupon, merchant: merchant)
+      invoice1 = create(:invoice, merchant: merchant, coupon: coupon1)
+      invoice2 = create(:invoice, merchant: merchant, coupon: coupon2)
+      invoice3 = create(:invoice, merchant: merchant, coupon: coupon1)
+      invoice4 = create(:invoice, merchant: merchant, coupon: nil)
+
+      expect(merchant.invoice_coupon_count).to eq(2)
+    end
   end
 end

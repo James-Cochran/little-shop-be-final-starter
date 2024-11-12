@@ -3,7 +3,7 @@ class Api::V1::Merchants::MerchantsInvoicesController < ApplicationController
 
   def index
     merchant = Merchant.find(params[:merchant_id])
-    invoices = merchant.invoices.includes(:coupon)  # Use includes to eager-load the coupons
+    invoices = merchant.invoices.includes(:coupon)  
 
     render json: InvoiceSerializer.new(invoices)
   end

@@ -23,6 +23,10 @@ class Merchant < ApplicationRecord
     coupons.where(active: true).count
   end
 
+  def invoice_coupon_count
+    invoices.joins(:coupon).distinct.count(:coupon_id)
+  end
+
   def distinct_customers
     # self.customers.distinct # This is possible due to the additional association on line 5
     
