@@ -3,8 +3,8 @@ require 'rails_helper'
 RSpec.describe "Merchant Coupon Index Filtered", type: :request do
   before :each do
     @merchant = Merchant.create!(name: "Walmart")
-    @active_coupon = @merchant.coupons.create!(name: "Active Coupon", code: "SAVE10", value: 10, active: true)
-    @inactive_coupon = @merchant.coupons.create!(name: "Inactive Coupon", code: "SAVE20", value: 20, active: false)
+    @active_coupon = @merchant.coupons.create!(name: "Active Coupon", code: "SAVE10", value: 10, active: true, dollar_off: 10)
+    @inactive_coupon = @merchant.coupons.create!(name: "Inactive Coupon", code: "SAVE20", value: 20, active: false, percent_off: 1)
   end
 
   it "returns only active coupons when passed 'active=true' query param" do

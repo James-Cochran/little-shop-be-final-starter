@@ -3,10 +3,10 @@ require 'rails_helper'
 RSpec.describe Coupon, type: :model do
   before :each do
     @merchant1 = Merchant.create!(name: "Walmart")
-    @coupon1 = Coupon.create!(name: "Discount A", code: "SAVE10", value: 10, active: true, merchant: @merchant1)
-    @coupon2 = @merchant1.coupons.create!(name: "Discount B", code: "SAVE20", value: 20, active: true)
-    @coupon3 = @merchant1.coupons.create!(name: "Discount C", code: "SAVE30", value: 30, active: false)
-    @coupon4 = @merchant1.coupons.create!(name: "Discount D", code: "SAVE40", value: 40, active: false)
+    @coupon1 = Coupon.create!(name: "Discount A", code: "SAVE10", value: 10, active: true, dollar_off: 10, merchant: @merchant1)
+    @coupon2 = @merchant1.coupons.create!(name: "Discount B", code: "SAVE20", value: 20, active: true, percent_off: 20)
+    @coupon3 = @merchant1.coupons.create!(name: "Discount C", code: "SAVE30", value: 30, active: false, percent_off: 30)
+    @coupon4 = @merchant1.coupons.create!(name: "Discount D", code: "SAVE40", value: 40, active: false, dollar_off: 40)
   end
 
   it { should belong_to(:merchant) }
@@ -15,7 +15,7 @@ RSpec.describe Coupon, type: :model do
   it { should validate_presence_of(:code) }
 
   it "validates uniqueness of code" do
-    Coupon.create!(name: "Coupon1", code: "Code1", value: 10, active: true, merchant: @merchant1)
+    Coupon.create!(name: "Coupon1", code: "Code1", value: 10, active: true, percent_off: 10, merchant: @merchant1)
     expect(Coupon.create(name: "Coupon2", code: "Code1", value: 20, active: true, merchant: @merchant1).valid?).to be_falsey
     should validate_uniqueness_of(:code) 
   end
@@ -27,7 +27,7 @@ RSpec.describe Coupon, type: :model do
       Invoice.create!(merchant: @merchant1, coupon: @coupon1, status: "shipped", customer: Customer.create!(first_name: "Bob", last_name: "Lobla"))
       Invoice.create!(merchant: @merchant1, coupon: @coupon1, status: "packaged", customer: Customer.create!(first_name: "Sally", last_name: "Schnieder"))
 
-      expect(@coupon1.used_count).to eq(2)
+      expect(@coupon1.times_used).to eq(2)
     end
   end
 
@@ -38,12 +38,11 @@ RSpec.describe Coupon, type: :model do
     end
 
     it "does not activate the coupon if there are already 5 active coupons" do
-      # binding.pry
-      @merchant1.coupons.create!(name: "Discount B2", code: "20%", value: 20, active: true)
-      @merchant1.coupons.create!(name: "Discount C2", code: "30%", value: 30, active: true)
-      @merchant1.coupons.create!(name: "Discount D2", code: "40%", value: 40, active: true)
-      @merchant1.coupons.create!(name: "Discount E2", code: "50%", value: 50, active: false)
-      @coupon2 = @merchant1.coupons.create!(name: "Discount F2", code: "60%", value: 60, active: false)
+      @merchant1.coupons.create!(name: "Discount B2", code: "20%", value: 20, active: true, percent_off: 20)
+      @merchant1.coupons.create!(name: "Discount C2", code: "30%", value: 30, active: true, percent_off: 30)
+      @merchant1.coupons.create!(name: "Discount D2", code: "40%", value: 40, active: true, dollar_off: 40)
+      @merchant1.coupons.create!(name: "Discount E2", code: "50%", value: 50, active: false, dollar_off: 40)
+      @coupon2 = @merchant1.coupons.create!(name: "Discount F2", code: "60%", value: 60, active: false, percent_off: 60)
       expect(@coupon2.update_status(true)).to be_falsey
       expect(@coupon2.reload.active).to be_falsey
       expect(@coupon2.errors[:base]).to include("Merchant already has 5 active coupons")
@@ -66,11 +65,11 @@ RSpec.describe Coupon, type: :model do
 
   describe "can_activate_coupon?" do
     it "returns false if the merchant already has 5 active coupons" do
-      @merchant1.coupons.create!(name: "Discount B2", code: "20%", value: 20, active: true)
-      @merchant1.coupons.create!(name: "Discount C2", code: "30%", value: 30, active: true)
-      @merchant1.coupons.create!(name: "Discount D2", code: "40%", value: 40, active: true)
-      @merchant1.coupons.create!(name: "Discount E2", code: "50%", value: 50, active: false)
-      @coupon2 = @merchant1.coupons.create!(name: "Discount F", code: "SAVE60", value: 60, active: false)
+      @merchant1.coupons.create!(name: "Discount B2", code: "20%", value: 20, active: true, dollar_off: 20)
+      @merchant1.coupons.create!(name: "Discount C2", code: "30%", value: 30, active: true, dollar_off: 30)
+      @merchant1.coupons.create!(name: "Discount D2", code: "40%", value: 40, active: true, percent_off: 40)
+      @merchant1.coupons.create!(name: "Discount E2", code: "50%", value: 50, active: false, percent_off: 50)
+      @coupon2 = @merchant1.coupons.create!(name: "Discount F", code: "SAVE60", value: 60, active: false, percent_off: 60)
       
       expect(@coupon2.send(:can_activate_coupon?)).to be_falsey
     end
