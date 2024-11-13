@@ -3,12 +3,12 @@ require 'rails_helper'
 RSpec.describe "Coupons API", type: :request do
   before :each do
     @merchant = Merchant.create!(name: "Walmart")
-    @coupon1 = @merchant.coupons.create!(name: "Discount A", code: "SAVE10", value: 10, active: true)
-    @coupon2 = @merchant.coupons.create!(name: "Discount B", code: "SAVE20", value: 20, active: false)
-    @coupon3 = @merchant.coupons.create!(name: "Discount C", code: "SAVE30", value: 30, active: true)
-    @coupon4 = @merchant.coupons.create!(name: "Discount D", code: "SAVE40", value: 40, active: true)
-    @coupon5 = @merchant.coupons.create!(name: "Discount E", code: "SAVE50", value: 50, active: true)
-    @coupon6 = @merchant.coupons.create!(name: "Discount F", code: "SAVE60", value: 60, active: true)
+    @coupon1 = @merchant.coupons.create!(name: "Discount A", code: "SAVE10", value: 10, active: true, dollar_off: 10)
+    @coupon2 = @merchant.coupons.create!(name: "Discount B", code: "SAVE20", value: 20, active: false, percent_off: 20)
+    @coupon3 = @merchant.coupons.create!(name: "Discount C", code: "SAVE30", value: 30, active: true, percent_off: 30)
+    @coupon4 = @merchant.coupons.create!(name: "Discount D", code: "SAVE40", value: 40, active: true, dollar_off: 40)
+    @coupon5 = @merchant.coupons.create!(name: "Discount E", code: "SAVE50", value: 50, active: true, percent_off: 50)
+    @coupon6 = @merchant.coupons.create!(name: "Discount F", code: "SAVE60", value: 60, active: true, dollar_off: 60)
   end
   
   describe "coupon index" do
@@ -68,8 +68,8 @@ RSpec.describe "Coupons API", type: :request do
       expect(json[:data][:attributes]).to have_key(:active)
       expect(json[:data][:attributes][:active]).to eq(@coupon1.active)
 
-      expect(json[:data][:attributes]).to have_key(:used_count)
-      expect(json[:data][:attributes][:used_count]).to eq(0)
+      expect(json[:data][:attributes]).to have_key(:times_used)
+      expect(json[:data][:attributes][:times_used]).to eq(0)
     end
 
     it "returns an error if coupon ID doesn't exist" do
@@ -92,14 +92,15 @@ RSpec.describe "Coupons API", type: :request do
   end
 
   describe "coupon create" do
-    it "can create a new coupon for a merchant" do
+    it "can create a new coupon for a merchant with dollar off" do
       post "/api/v1/merchants/#{@merchant.id}/coupons", params: {
         name: "Discount G", 
         code: "SAVE70", 
         value: 70, 
-        active: false
+        active: false,
+        dollar_off: 15,
+        percent_off: 0
       }
-
       expect(response).to be_successful
       expect(response.status).to eq(201)
 
@@ -110,6 +111,29 @@ RSpec.describe "Coupons API", type: :request do
       expect(json[:data][:attributes][:code]).to eq("SAVE70")
       expect(json[:data][:attributes][:value]).to eq(70)
       expect(json[:data][:attributes][:active]).to eq(false)
+      expect(json[:data][:attributes][:dollar_off]).to eq(15)
+    end
+
+    it "can create a new coupon with percent_off" do
+      post "/api/v1/merchants/#{@merchant.id}/coupons", params: {
+        name: "Discount H", 
+        code: "SAVE80", 
+        value: 80, 
+        active: false, 
+        percent_off: 10.0
+      }
+    
+      expect(response).to be_successful
+      expect(response.status).to eq(201)
+    
+      json = JSON.parse(response.body, symbolize_names: true)
+      
+      expect(json[:data]).to have_key(:id)
+      expect(json[:data][:attributes][:name]).to eq("Discount H")
+      expect(json[:data][:attributes][:code]).to eq("SAVE80")
+      expect(json[:data][:attributes][:value]).to eq(80)
+      expect(json[:data][:attributes][:active]).to eq(false)
+      expect(json[:data][:attributes][:percent_off]).to eq(10.0)
     end
 
     it "returns an error if the merchant already has 5 active coupons" do
@@ -117,7 +141,8 @@ RSpec.describe "Coupons API", type: :request do
         name: "Discount H", 
         code: "SAVE80", 
         value: 80, 
-        active: true
+        active: true,
+        percent_off: 80
       }
      
       expect(response.status).to eq(400)
@@ -132,7 +157,8 @@ RSpec.describe "Coupons API", type: :request do
         name: "Duplicate Code", 
         code: "SAVE10", 
         value: 20, 
-        active: true
+        active: true,
+        dollar_off: 20
       }
 
       expect(response.status).to eq(400)

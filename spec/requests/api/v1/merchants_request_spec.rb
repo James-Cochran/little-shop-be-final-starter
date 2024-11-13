@@ -17,11 +17,11 @@ describe "Merchant endpoints", :type => :request do
     it "should return merchants with coupon and invoice counts" do
       @merchant = Merchant.create!(name: "Walmart")
 
-      @coupon1 = @merchant.coupons.create!(name: "Discount A", code: "SAVE10", value: 10, active: true)
-      @coupon2 = @merchant.coupons.create!(name: "Discount B", code: "SAVE20", value: 20, active: false)
-      @coupon3 = @merchant.coupons.create!(name: "Discount C", code: "SAVE30", value: 30, active: true)
-      @coupon4 = @merchant.coupons.create!(name: "Discount D", code: "SAVE40", value: 40, active: true)
-      @coupon5 = @merchant.coupons.create!(name: "Discount E", code: "SAVE50", value: 50, active: false)
+      @coupon1 = @merchant.coupons.create!(name: "Discount A", code: "SAVE10", value: 10, active: true, dollar_off: 10)
+      @coupon2 = @merchant.coupons.create!(name: "Discount B", code: "SAVE20", value: 20, active: false, percent_off: 20)
+      @coupon3 = @merchant.coupons.create!(name: "Discount C", code: "SAVE30", value: 30, active: true, percent_off: 30)
+      @coupon4 = @merchant.coupons.create!(name: "Discount D", code: "SAVE40", value: 40, active: true, percent_off: 40)
+      @coupon5 = @merchant.coupons.create!(name: "Discount E", code: "SAVE50", value: 50, active: false, dollar_off: 50)
 
       @customer1 = Customer.create!(first_name: "Bob", last_name: "Lobla")
       @customer2 = Customer.create!(first_name: "Sally", last_name: "Schnieder")
